@@ -1,0 +1,15 @@
+{
+  "name": "morphenius",
+  "description": "Michael Smith's opt-in Claude Code skills",
+  "owner": {
+    "name": "Michael Smith",
+    "url": "https://github.com/morphenius"
+  },
+  "plugins": [
+    {
+      "name": "duet",
+      "source": "./duet",
+      "description": "Autonomous Claude↔Codex loop: Claude designs and reviews, Codex implements, until both approve"
+    }
+  ]
+}
