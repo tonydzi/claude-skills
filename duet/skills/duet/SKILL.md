@@ -22,6 +22,9 @@ first' — then loop with Codex.> Budget: <B> rounds."
   substitute implementer.
 - **Claude Code** as the orchestrator — this skill leans on its subagents,
   background Bash, and `ToolSearch`.
+- **No particular permission mode.** Duet is built to run under auto-approve;
+  see **Preflight** and **Permissions**. It asks for the least it can, and
+  asks once, at the start.
 - Nothing else. Duet needs no other skills and no repo-specific setup; it
   works in any git repo (and, degraded, outside one — see **Set up**).
 
@@ -66,7 +69,11 @@ first' — then loop with Codex.> Budget: <B> rounds."
   that side settles disputes at the cap. If they say "figure it out" without
   naming one, ask who breaks ties NOW (AskUserQuestion), before starting.
   This is the only question allowed. **After kickoff the run is fully
-  autonomous — never ask the user anything mid-run.**
+  autonomous — never ask the user anything mid-run.** The single exception is
+  a permission or credential wall that stops the run outright: duet cannot
+  approve on the user's behalf, so it stops, says exactly what is blocked, and
+  waits (see **Permissions**). **Preflight** exists so this practically never
+  happens after kickoff — every environment question is settled before Round 1.
 
 ## Set up
 
@@ -89,6 +96,93 @@ first' — then loop with Codex.> Budget: <B> rounds."
   task, mode, date, participants (ACTUAL model names), budget state.
 - Read `references/protocol.md` (next to this file). It is the contract both
   sides follow; hand its full text to Codex with every turn prompt.
+
+## Preflight — settle auth and permissions before Round 1
+
+Duet is hands-off after kickoff, so every environment question gets answered
+**now**, in one handshake, instead of surfacing as a denied command in round 7
+with a half-built worktree on the floor. Run these before the announcement.
+Steps 1–2 can run while the worktree is being set up; step 3 needs it.
+
+1. **Codex is there**: `codex --version`. If it fails, stop and say so — never
+   improvise a substitute implementer.
+2. **How Codex authenticates**: `codex login status`.
+   - `Logged in using ChatGPT` → a stored subscription login exists: **keep**
+     the `env -u CODEX_API_KEY -u OPENAI_API_KEY` prefix, so a long
+     implementation run bills the subscription instead of the API.
+   - Not logged in (an API key in the environment is doing the work) →
+     **drop** the prefix, or `codex exec` fails to authenticate once the keys
+     are stripped.
+
+   Decide once, here, and use the same prefix for every turn of the run.
+   **Never read `~/.codex/auth.json`** or any other credential file to answer
+   this. `codex login status` reports the same thing without touching a
+   secret, and "read the file holding my API keys" is exactly the shape a
+   permission classifier denies — correctly.
+3. **Smoke test — this doubles as the permission handshake.** Once the
+   worktree and runs dir exist, run the *real* command shape once with a
+   throwaway prompt:
+
+   ```bash
+   env -u CODEX_API_KEY -u OPENAI_API_KEY \
+     codex exec -s workspace-write --add-dir "<runs>" \
+     -c sandbox_workspace_write.network_access=true \
+     -C "<worktree>" -o "<runs>/smoke.md" \
+     "Reply with exactly: DUET_SMOKE_OK" </dev/null
+   ```
+
+   **Flag for flag, this is the command the rounds use** — only `-o` and the
+   prompt differ. That is the whole point: the approval granted here covers
+   every round that follows. A smoke test in a *simpler* shape is worse than
+   none, because it proves the rounds will be allowed when they won't.
+
+   - **`DUET_SMOKE_OK`** → go. Announce and start Round 1.
+   - **Auth error** → step 2 read the environment wrong. Flip the `env -u`
+     decision, retry once, and use whichever worked for the rest of the run.
+   - **Denied by the permission system** → stop *here*, before any design
+     work. Show the user the allowlist under **Permissions**, ask once, then
+     resume. Do **not** quietly retry in a weaker shape to slip past the
+     denial — a Codex that cannot write the worktree produces a run that looks
+     alive and builds nothing. If the user declines, remove the worktree and
+     stop.
+
+**Never wrap a Codex call in `timeout`** — it is not present on stock macOS, so
+the whole command dies with `env: timeout: No such file or directory` and reads
+like a Codex failure. Long turns go to Bash `run_in_background` and get
+monitored, which is the rule for implement turns anyway.
+
+## Permissions
+
+Duet asks for the least it can, and asks for it once. A colleague on
+auto-approve should see at most one prompt, at the smoke test.
+
+| Command | Why duet needs it |
+|---|---|
+| `codex login status` | which auth Codex uses — reads no secret |
+| `codex exec -s workspace-write …` | the implementer's turn, once per round |
+| `git worktree add` / `remove` | the isolated checkout duet works in |
+| `gh pr view` / `gh pr comment` | PR mode only — the thread is the notebook |
+
+If the smoke test comes back denied, hand the user exactly this, say in one
+line what each entry buys, and let them add it via `/permissions` or
+`.claude/settings.json`:
+
+```json
+"permissions": {
+  "allow": [
+    "Bash(codex login status)",
+    "Bash(env -u CODEX_API_KEY -u OPENAI_API_KEY codex exec:*)",
+    "Bash(codex exec:*)",
+    "Bash(git worktree:*)",
+    "Bash(gh pr view:*)",
+    "Bash(gh pr comment:*)"
+  ]
+}
+```
+
+Report the denial as what it is — the harness's permission gate, not a refusal
+by the model and not a broken Codex. Users read "denied" as "Claude won't do
+it" and argue with the wrong party.
 
 ## Context economy — orchestrate rounds through fresh subagents (default)
 
@@ -181,22 +275,43 @@ In PR-review mode the steps below are re-shaped into Phases A–D; see
 
    ```bash
    env -u CODEX_API_KEY -u OPENAI_API_KEY \
-     codex exec --dangerously-bypass-approvals-and-sandbox \
+     codex exec -s workspace-write --add-dir "<runs>" \
+     -c sandbox_workspace_write.network_access=true \
      -C "<worktree>" -o "<runs>/round-<n>-codex.md" \
      "$(cat "<runs>/round-<n>-prompt.md")" </dev/null
    ```
 
-   **On the `env -u` prefix — keep it or drop it, once, at setup.** It strips
-   inherited API keys (and defeats shell wrappers that inject one), so Codex
-   falls back to whatever `codex login` stored. Keep it if Codex is signed in
-   with a subscription and you'd rather not bill the API for long
-   implementation runs — that is the default assumption here. **Drop it if
-   your Codex authenticates by API key only**, since with the keys stripped
-   `codex exec` will fail to authenticate. If the first Codex turn dies on an
-   auth error, that prefix is the first thing to check.
+   Every part of that line earns its place — use the same shape every round,
+   so one approval covers the whole run:
 
-   The `</dev/null` is required: with an open non-tty stdin, `codex exec`
-   blocks forever waiting for stdin to close (verified 2026-08-11).
+   - **`-s workspace-write`** confines Codex's writes to its working root.
+     That is the actual safety property duet wants (Codex touches the
+     throwaway worktree, nothing else), and it reads to a permission
+     classifier as an ordinary sandboxed tool call rather than a request to
+     switch safety off.
+   - **`--add-dir "<runs>"`** because the runs dir sits outside the worktree
+     and Codex writes there — the `-o` transcript, and prompts it may read.
+     Without it those writes fail inside the sandbox (verified 2026-08-14).
+   - **`-c sandbox_workspace_write.network_access=true`** because
+     `workspace-write` blocks the network by default, and implement turns
+     routinely need `gh`, `git fetch`, or a package install (verified
+     2026-08-14). Keep it by default. The only case for dropping it is a
+     notebook-medium run where Codex neither builds anything nor posts to a
+     PR — note that PR mode always needs it, review-only included, since Codex
+     posts its own entries with `gh pr comment`.
+   - **`</dev/null`** is required: with an open non-tty stdin, `codex exec`
+     blocks forever waiting for stdin to close (verified 2026-08-11).
+   - **The `env -u` prefix** is whatever **Preflight** settled — keep it for a
+     subscription login, drop it for API-key-only auth. Don't re-derive it
+     mid-run.
+
+   **Escalation is a last resort, never a starting point.** Do not open with
+   `--dangerously-bypass-approvals-and-sandbox`. Reach for it only if a turn
+   actually fails on something `workspace-write` cannot cover — Codex needing
+   to write outside the worktree, drive Docker, or reach a system path. Then
+   stop, name the exact command that failed and why, get the user's OK, and
+   use it from that turn on. Starting there is what gets duet denied on round
+   one in auto-approve sessions.
 
    Verify Codex appended a well-formed entry (`grep '^VERDICT:'` on the
    tail). If it answered in `-o` output but failed to append, append it

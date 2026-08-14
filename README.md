@@ -77,16 +77,25 @@ afterward rather than taking the result on faith.
   (`codex login`). Duet calls `codex exec` once per round.
 - Claude Code as the orchestrator.
 
-**One setup knob.** The Codex command is prefixed with
-`env -u CODEX_API_KEY -u OPENAI_API_KEY`, which strips inherited API keys so Codex
-uses your subscription login instead of billing the API. If you authenticate Codex
-by **API key only**, delete that prefix from `SKILL.md` or the first Codex turn will
-fail on auth. Everything else works out of the box.
+**No setup knobs.** Duet runs a short preflight before it starts: it checks Codex is
+installed, asks `codex login status` whether you're on a subscription or an API key,
+and adjusts the command it uses accordingly. Then it runs one throwaway Codex call as
+a smoke test. If anything is wrong, you hear about it in the first few seconds rather
+than forty minutes in.
 
-**Safety note.** Codex runs with `--dangerously-bypass-approvals-and-sandbox`, but
-confined to a throwaway git worktree under `~/.claude/duet/` on its own branch —
-never your working tree. Read the source before you run it if that trade isn't one
-you want.
+**Permissions.** Duet is built to run under auto-approve. Codex is called with
+`-s workspace-write`, which lets it edit the throwaway worktree and nothing else —
+so it reads as a normal sandboxed command, not a request to switch safety off. The
+smoke test uses the exact command shape the real rounds use, so approving it once
+covers the whole run. If your setup denies even that, duet stops right there and
+prints the allowlist to paste into `/permissions` — it will not quietly downgrade
+itself into a run that looks alive and builds nothing.
+
+**Safety note.** Codex writes only inside a throwaway git worktree under
+`~/.claude/duet/`, on its own branch — never your working tree. It has network
+access (implementation needs `gh`, `git fetch`, package installs). Duet escalates to
+`--dangerously-bypass-approvals-and-sandbox` only if a turn genuinely can't proceed
+without it, and only after telling you why.
 
 ## Layout
 

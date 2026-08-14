@@ -89,6 +89,12 @@ for that one round:
   and none at all in the review-only shape.
 - Implementation happens only inside the assigned worktree. Never leave it,
   never `git stash`, never touch the notebook's history.
+- You run **sandboxed**: the worktree and the runs dir are writable, the rest
+  of the filesystem is not. That matches the rule above, so ordinary work
+  never notices it. If something you genuinely need is refused by the sandbox,
+  **say so in your entry** — name the command and what it needed — and let the
+  architect widen it. Do not route around a sandbox denial, and do not silently
+  drop the piece of work that hit it.
 - Every `IMPLEMENTED` entry states what changed (files), what was run to
   verify (lint/tests + results), and any known gaps — gaps hidden from the
   reviewer count as defects. When fixing against a work order, answer it
