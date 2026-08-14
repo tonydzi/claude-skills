@@ -10,9 +10,9 @@ orchestrating Claude model and Codex without the user shuttling messages.
 The user is hands-off after kickoff.
 
 **Announce at start:** "Starting duet: <task one-liner>. Mode: <spec|implement|PR
-review>. <Opening line: 'Codex and I will draft independently, then I'll merge
-the two' — or, in implement mode, 'I'll design first' — then loop with Codex.>
-Budget: <B> rounds."
+review (review-then-fix|review-only)>. <Opening line: 'Codex and I will draft
+independently, then I'll merge the two' — or, in implement mode, 'I'll design
+first' — then loop with Codex.> Budget: <B> rounds."
 
 ## Prerequisites
 
@@ -35,22 +35,32 @@ Budget: <B> rounds."
   - **Implement** — a plan/spec already exists and the job is to build it.
     No blind openings; the existing plan is the proposal.
   - **PR review** — the invocation points at a PR whose code was written by
-    someone else and the ask is to review it. Blind openings, no
-    implementation phase (see **PR-review mode** below).
+    someone else. Blind openings, then converge on findings. It has two
+    shapes (see **PR-review mode** below):
+    - **review-then-fix** (the default): after both sides agree the finding
+      list is right, Codex fixes the agreed findings and the orchestrator
+      checks the diff against what was agreed.
+    - **review-only**: stop at the agreed finding list, nobody commits. Use
+      this only when the user says so — "review only", "don't change
+      anything", "just tell me what's wrong", or the PR is somebody else's
+      to fix.
 
   Ambiguous cases: if the task names an existing plan/spec/issue to follow,
-  it's Implement; if it points at a PR without asking for changes to be
-  written, it's PR review; otherwise Spec. State the chosen mode in the
-  announcement and the notebook header. Don't ask the user.
+  it's Implement; if it points at a PR, it's PR review (review-then-fix
+  unless the user asked for review-only); otherwise Spec. State the chosen
+  mode **and shape** in the announcement and the notebook header. Don't ask
+  the user.
 - **PR medium**: if the invocation points at a PR (number/URL), the exchange
   happens in the PR thread instead of a notebook (see PR mode below), unless
   the user says otherwise. This is orthogonal to mode — a Spec or Implement
   duet can also run in a PR thread.
 - **Medium override**: "keep the discussion in <X>" wins over defaults.
 - **Budget override**: "budget 25" (or similar) sets the round budget for
-  this run; otherwise it's 15. A typical task converges in ~10 rounds — the
-  budget is headroom to catch runaway loops, not a target, so don't slow-walk
-  toward it or stop early because rounds remain.
+  this run; otherwise it's 15 — or **20 in PR review / review-then-fix**,
+  which pays for review, fixes, and the conformance check out of one pool. A
+  typical task converges in ~10 rounds — the budget is headroom to catch
+  runaway loops, not a target, so don't slow-walk toward it or stop early
+  because rounds remain.
 - **Tie-breaker**: default is pause-and-escalate at budget exhaustion. If the
   user says "figure it out" AND names a tie-breaker (e.g. "Fable decides"),
   that side settles disputes at the cap. If they say "figure it out" without
@@ -66,6 +76,14 @@ Budget: <B> rounds."
   logs in `~/.claude/duet/<repo>/runs/<slug>/`. PR mode: `git fetch origin
   pull/<n>/head` and check that out in the worktree. Not a git repo: work in
   place, skip the worktree.
+- **PR review / review-then-fix needs a pushable branch**, and
+  `pull/<n>/head` lands you detached. Look up the head with
+  `gh pr view <n> --json headRefName,headRepositoryOwner,maintainerCanModify`
+  and check out a local branch tracking that head branch on its own remote
+  (adding the fork as a remote if needed) rather than the detached `FETCH_HEAD`.
+  If that isn't possible, fall back to branch `duet/<slug>` started at the PR
+  head — the fixes still get made, they just land per **Landing the fixes**.
+  Decide this at setup, not after the fixes exist.
 - **Notebook**: `.duet/<YYYY-MM-DD>-<slug>.md` inside the worktree. Add
   `.duet/` to `.git/info/exclude` (never commit it unless asked). Header:
   task, mode, date, participants (ACTUAL model names), budget state.
@@ -144,9 +162,12 @@ round, not three.
 ## The loop
 
 One **round** = one orchestrator entry + one Codex entry. **The budget (B,
-default 15) covers all phases together** — design and review draw from the
-same pool. Record B in the notebook header and label every entry
-`Round N/<B>`.
+default 15; 20 for PR review / review-then-fix) covers all phases together** —
+design, implementation, and review draw from the same pool. Record B in the
+notebook header and label every entry `Round N/<B>`.
+
+In PR-review mode the steps below are re-shaped into Phases A–D; see
+**PR-review mode**.
 
 1. **Design**: in spec and PR-review modes, Round 1 is the blind opening above
    and the loop picks up at Round 2. In implement mode, write the initial
@@ -204,9 +225,12 @@ same pool. Record B in the notebook header and label every entry
 ## Finish
 
 - Commit in the worktree; push/PR only if the task calls for it (PR mode:
-  push to the PR branch, post a wrap-up comment).
+  push to the PR branch, post a wrap-up comment — in PR-review mode follow
+  **Landing the fixes**, including the fallback when the push is rejected).
 - Final report to the user in plain language: what was built, how it was
-  verified, notebook path, worktree path, diff summary.
+  verified, notebook path, worktree path, diff summary. In PR-review mode,
+  include the per-ID conformance table — which findings were fixed as agreed,
+  which differently, which deliberately left.
 - **Tidy up.** Only after the final report, and only once the work is
   committed (or the user asked to throw it away). Duet created the worktree,
   so it already knows both paths — do not go discovering them:
@@ -240,11 +264,16 @@ same pool. Record B in the notebook header and label every entry
 
 ## PR-review mode
 
-Reviewing a PR somebody else wrote: there is no implementation phase, and the
-deliverable is the review itself.
+Reviewing a PR: the two sides review independently, converge on what's wrong,
+and then — in the default **review-then-fix** shape — Codex actually fixes it
+and the orchestrator checks the fixes against what was agreed. Agreeing on a
+list of complaints is the *middle* of this mode, not the end.
+
+### Phase A — converge on the findings
 
 - **Set up** as PR mode below (fetch and check out the PR head in the
-  worktree), but nobody commits — treat the checkout as read-only.
+  worktree). Nobody commits during Phase A; the checkout is read-only until
+  the work order is frozen.
 - **Round 1** is the blind opening above: both sides review the PR
   independently, each at the standard of the code-review skill at high effort,
   each fanning out its own review angles and adversarially verifying findings
@@ -257,13 +286,87 @@ deliverable is the review itself.
   add: each responds point-by-point with its own judgment (confirmed /
   refuted and why). Verify contested claims against the actual code rather
   than deferring to whoever sounds more confident.
-- **Done** when both sides `AGREE` the finding list is right — no `APPROVE`,
-  since nobody here is approving code. Post the settled review as the wrap-up
-  comment, and say plainly which findings were unanimous and which were one
-  side's call.
-- **Budget exhausted** with findings still disputed: post the agreed findings
-  and list the disputed ones as disputed, showing both positions. A split
-  review is a fine outcome; a fake consensus is not.
+- Phase A ends when both sides `AGREE` the finding list is right.
+
+### Phase B — freeze the work order
+
+Agreeing a problem is real is **not** agreeing what to do about it, and an
+unwritten intent can't be checked later. So before any code is written, the
+orchestrator posts a **work order** and Codex must `AGREE` to it (one round):
+
+- Every surviving finding gets a stable ID (`F1`, `F2`, …), and for each:
+  **file:line**, the defect in one sentence, the **agreed remedy** in concrete
+  terms (what the code should do afterwards, not "fix it"), and how it will
+  be **verified** (specific test, command, or observation).
+- Each finding is marked **fix now** / **out of scope** (why — e.g. pre-existing,
+  or a separate PR) / **still disputed**. Only *fix now* items get built.
+  Disputed items are never silently built or silently dropped.
+- The work order is the contract Phase D checks against. Store it in the runs
+  dir as `work-order.md` as well as posting it, and record it in
+  `architect-state.md` — a fresh per-round subagent must be able to check
+  conformance from that file alone.
+
+### Phase C — Codex fixes
+
+- Codex implements the *fix now* items in the worktree, exactly as the loop's
+  **Implement** step describes (repo ground rules, validation gates, never
+  leave the worktree, never `git stash`; long runs in background).
+- **One commit per finding where practical**, message starting with the ID
+  (`F3: reject negative page sizes`). This is what makes Phase D cheap.
+- Its entry is `VERDICT: IMPLEMENTED` and must map every ID to what changed
+  and what was run to verify it — including any it chose *not* to do and why.
+
+### Phase D — conformance check
+
+The orchestrator re-reviews the new commits with the work order in hand and
+posts a per-ID verdict table. For each ID exactly one of:
+
+| Verdict | Meaning |
+|---|---|
+| **as agreed** | Fixed, matches the agreed remedy, verification passes |
+| **fixed differently** | Defect is gone but by another route — judge it on merit; if the new route is fine, say so and accept; if not, it's a `REVISE` item |
+| **not fixed** | Untouched, or the remedy doesn't actually close the defect |
+| **new problem** | The fix introduced something that wasn't there before |
+
+- Re-run the verification named in the work order yourself. **Never accept
+  "fixed" on Codex's say-so** — check against the actual new commit.
+- Also review the fix diff as a whole for scope creep: changes with no
+  finding ID behind them get called out, and either justified or reverted.
+- Anything not **as agreed** (or an accepted *fixed differently*) →
+  `VERDICT: REVISE`, back to Phase C. All clean → `VERDICT: APPROVE`, and
+  Codex closes with `AGREE`.
+
+### Landing the fixes
+
+- **Preferred**: push the fix commits to the PR's head branch, so the PR the
+  user pointed at gets better. This only works if you can write to it —
+  same-repo PRs, or fork PRs with maintainer-edits enabled.
+- **If the push is rejected** (fork PR, no write access, protected branch):
+  do not force anything. Push the `duet/<slug>` branch to your own remote and
+  open a stacked PR against the original PR's branch, and say so plainly in
+  the wrap-up comment and the final report. If even that fails, leave the
+  commits local and report the worktree path and branch name so the user can
+  pick them up.
+- Either way, post the wrap-up comment on the original PR: the settled
+  findings (which were unanimous, which were one side's call), what was fixed,
+  what was deliberately left, and where the commits are.
+
+### review-only shape
+
+When the user asked for review-only, stop at the end of Phase A: no work
+order, no commits, no `APPROVE` — nobody is approving code. Post the settled
+review as the wrap-up comment, saying plainly which findings were unanimous
+and which were one side's call.
+
+### Budget exhausted
+
+- **In Phase A**, findings still disputed: post the agreed findings and list
+  the disputed ones as disputed, showing both positions. A split review is a
+  fine outcome; a fake consensus is not.
+- **In Phase C/D**, fixes incomplete: commit and push what *is* verified as
+  agreed, and report per-ID exactly what landed, what didn't, and what state
+  each unfinished one is in. Never report a partially-applied work order as
+  done.
 
 ## PR mode
 

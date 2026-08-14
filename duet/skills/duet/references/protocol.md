@@ -20,8 +20,11 @@ VERDICT: <verdict>
 - **Append-only.** Never edit or delete another entry (or your own past ones).
   This includes the Round 1 blind drafts once posted — the merged proposal
   supersedes them in force, but their text stays as written.
-- In PR-review mode nobody implements: the roles read
-  `<Reviewer A|Reviewer B>`, with the orchestrator as A.
+- While PR-review mode is still converging on findings (Phase A), nobody is
+  implementing yet: the roles read `<Reviewer A|Reviewer B>`, with the
+  orchestrator as A. Once the work order is frozen and fixing begins, the
+  roles revert to `<Architect|Implementer>` for the rest of the run. In the
+  **review-only** shape they stay Reviewer A/B throughout.
 - The `VERDICT:` line is the last line before the signature, exactly
   `VERDICT: <WORD>` at line start (it is machine-parsed).
 - **Sign as the model you actually are** — e.g. `— Fable 5 (Claude Code,
@@ -44,8 +47,15 @@ VERDICT: <verdict>
 
 Design phase ends when **both** sides have said `AGREE` on the same plan.
 The duet ends when the architect says `APPROVE` and the implementer closes
-with `AGREE`. In PR-review mode there is no `APPROVE` — nobody is approving
-code — and it ends when both sides `AGREE` on the finding list.
+with `AGREE`.
+
+In **PR review**, both sides first `AGREE` on the finding list, then `AGREE`
+on the frozen work order (the agreed remedy for each finding), then the
+implementer fixes (`IMPLEMENTED`) and the architect checks the diff against
+that work order, finding by finding — `REVISE` if anything is unfixed, fixed
+in a way that doesn't hold up, or out of scope; `APPROVE` when it all matches.
+In the **review-only** shape there is no work order and no `APPROVE` — nobody
+is approving code — and it ends when both sides `AGREE` on the finding list.
 
 ## The blind opening (Round 1)
 
@@ -73,13 +83,19 @@ for that one round:
 
 ## Implementer constraints
 
-- **Design phase: no code edits.** Reading the repo to inform critique is
-  encouraged; your only write is your notebook entry.
+- **Before the plan (or the work order) is agreed: no code edits.** Reading
+  the repo to inform critique is encouraged; your only write is your notebook
+  entry. In PR review that means no edits until the work order is frozen —
+  and none at all in the review-only shape.
 - Implementation happens only inside the assigned worktree. Never leave it,
   never `git stash`, never touch the notebook's history.
 - Every `IMPLEMENTED` entry states what changed (files), what was run to
   verify (lint/tests + results), and any known gaps — gaps hidden from the
-  reviewer count as defects.
+  reviewer count as defects. When fixing against a work order, answer it
+  **item by item, by ID**, including items you chose not to do and why;
+  silently skipping an agreed item is a defect. Don't change things no agreed
+  item asks for — if you think something else needs doing, say so in your
+  entry and let it be added to the work order first.
 - In PR mode, post your entry as a PR comment via `gh pr comment`, opening
   with an attribution line naming your model, harness, and role, e.g.
   `*[GPT-5.1-codex · codex exec · duet implementer · <org>/<repo>:]*`
