@@ -15,6 +15,10 @@ In any Claude Code session:
 
 To back out: `/plugin uninstall duet@morphenius`.
 
+Then invoke it as **`/duet <task or PR>`**. Installed from a plugin it is formally
+named `duet:duet` (plugin name, then skill name), and that fully-qualified form
+works too — but plain `/duet` routes to it.
+
 ## Updating
 
 Installed plugins are **copied into a cache and pinned to a git commit**, so

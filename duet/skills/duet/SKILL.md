@@ -1,6 +1,6 @@
 ---
 name: duet
-description: "Use when the user types /duet <task or PR> — autonomous Claude↔Codex loop: Claude designs & reviews, Codex implements, until both approve or the round budget (default 15) runs out"
+description: "Use when the user types /duet or /duet:duet <task or PR> — autonomous Claude↔Codex loop: Claude designs & reviews, Codex implements, until both approve or the round budget (default 15) runs out"
 ---
 
 # Duet — Claude designs and reviews, Codex implements
@@ -27,7 +27,8 @@ Budget: <B> rounds."
 
 ## Parse the invocation
 
-- **Task**: everything after `/duet` that isn't a directive below.
+- **Task**: everything after `/duet` (or `/duet:duet`, the fully-qualified
+  plugin form — both mean the same thing) that isn't a directive below.
 - **Mode** — decides the opening shape (see **Opening** below) and whether
   there's an implementation phase:
   - **Spec** — the task is to design/plan something. Blind openings.
