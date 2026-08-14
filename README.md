@@ -13,8 +13,22 @@ In any Claude Code session:
 /plugin install duet@morphenius
 ```
 
-To pick up later updates: `/plugin marketplace update morphenius`.
 To back out: `/plugin uninstall duet@morphenius`.
+
+## Updating
+
+Installed plugins are **copied into a cache and pinned to a git commit**, so
+refreshing the marketplace alone doesn't move an already-installed plugin. To
+actually pick up new changes, reinstall:
+
+```
+/plugin marketplace update morphenius
+/plugin uninstall duet@morphenius
+/plugin install duet@morphenius
+```
+
+Same three lines whether you're a teammate pulling from GitHub or the author
+pulling from a local clone.
 
 ## Plugins
 
@@ -82,3 +96,13 @@ duet/
 
 Adding another plugin means a new top-level directory plus one entry in
 `.claude-plugin/marketplace.json`.
+
+## Authoring (for me)
+
+This machine has the marketplace registered as a **directory** source pointing at
+the local clone (`~/Projects/claude-skills`), not at GitHub — so the edit loop is
+edit → commit → the three update lines above, with no push required to test.
+Push when it is ready for everyone else.
+
+The other machine and teammates register it as a GitHub source:
+`/plugin marketplace add morphenius/claude-skills`.
