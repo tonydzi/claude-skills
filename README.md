@@ -42,25 +42,36 @@ pulling from a local clone.
 
 ### duet
 
-Two models work a task together while you go do something else. Claude (the
-orchestrator) writes the design; Codex critiques it and writes the code; Claude
-reviews the diff; they go around until Claude approves and Codex agrees — or
-until the round budget (default 15) runs out, at which point it stops and
-explains where they got stuck in plain language.
+Several models work a task together while you go do something else. Every
+agent gets an explicit model, tiered to the work: Fable drafts blind and
+makes the judgment-call checkpoints, Sonnet does the routine per-round
+design/review/merge work, Haiku handles mechanical chores, and Codex designs,
+critiques, and writes the code. They go around until the architect approves
+and Codex agrees — or until the round budget (default 8; 12 for PR
+review-then-fix) runs out, at which point it stops and explains where they
+got stuck in plain language.
 
 The whole exchange is written down as it happens — a notebook file in the
-worktree, or PR comments if you point it at a PR — so you can read the argument
-afterward rather than taking the result on faith.
+worktree, or PR comments if you point it at a PR — so you can read the
+argument afterward rather than taking the result on faith.
 
 **Three modes**, chosen automatically from how you invoke it:
 
 - **Spec** — designing something new. Both sides draft their opening *blind*
-  (neither sees the other's first), then a third fresh context merges them.
-  Nobody gets anchored by whoever typed first.
-- **Implement** — a plan already exists; skip straight to building it.
-- **PR review** — review someone else's PR. Blind openings again, no code
-  written, and disputed findings are reported *as* disputed rather than
-  papered over.
+  (neither sees the other's first), then Sonnet and Codex iterate up to 3
+  independent merge attempts until they converge, and a Fable end-check asks
+  "what did the simpler models miss?" before issuing the charter. Nobody
+  gets anchored by whoever typed first.
+- **Implement** — a plan already exists; skip straight to building it, with
+  a Fable architectural pass once the loop converges.
+- **PR review** — review someone else's PR. Blind openings again (Fable is
+  the blind Claude-side reviewer), findings converge the same iterated-merge
+  way, and disputed findings are reported *as* disputed rather than papered
+  over.
+
+A parent project can also split a large piece of work into parts and run each
+as a nested duet against a shared round/Fable-checkpoint budget, so a
+multi-part job can't silently drain the account one part at a time.
 
 **Examples**
 
@@ -69,6 +80,7 @@ afterward rather than taking the result on faith.
 /duet implement the plan in docs/rfcs/retry-policy.md
 /duet review PR 412
 /duet budget 25 refactor the scheduler; figure it out, Opus breaks ties
+/duet project ingest-rewrite part 3/6, spec docs/rfcs/ingest-rewrite.md
 ```
 
 **Requirements**
@@ -103,8 +115,8 @@ without it, and only after telling you why.
 .claude-plugin/marketplace.json    the marketplace manifest
 duet/
   .claude-plugin/plugin.json       the plugin manifest
-  skills/duet/SKILL.md             the skill itself
-  skills/duet/references/          the protocol both sides follow each turn
+  skills/duet/SKILL.md             the skill core (model table, the loop, budgets)
+  skills/duet/references/          protocol, preflight, PR-review, multi-part
 ```
 
 Adding another plugin means a new top-level directory plus one entry in

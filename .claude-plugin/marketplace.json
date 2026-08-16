@@ -9,7 +9,7 @@
     {
       "name": "duet",
       "source": "./duet",
-      "description": "Autonomous Claude↔Codex loop: Claude designs and reviews, Codex implements, until both approve"
+      "description": "Autonomous Claude↔Codex loop: Fable and Codex draft independently and merge, Codex implements under tiered review, until both approve"
     }
   ]
 }
