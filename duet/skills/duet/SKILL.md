@@ -105,6 +105,17 @@ don't re-document it here — see git history.
 
 ## Set up
 
+- **Prune old duet branches first.** Local branches matching `duet/*` in this
+  repo that are already merged into `origin/HEAD` (or `HEAD` if no remote) are
+  leftovers from prior runs — GitHub's delete-on-merge setting, if on, only
+  cleans up the remote side, never local refs, and duet's own Tidy-up step
+  deliberately never deletes a branch (the PR may still be open when a run
+  ends). Before creating this run's worktree: `git fetch --prune` (drops
+  remote-tracking refs for branches GitHub already deleted), then `git branch
+  -d $(git branch --list 'duet/*' --merged origin/HEAD)` (falls back to
+  `--merged HEAD` with no remote). Safe unconditionally — lowercase `-d`
+  refuses anything not merged, and refuses a branch checked out in another
+  worktree, so a run still in flight on a different slug is untouched.
 - In a git repo: create an isolated worktree at
   `~/.claude/duet/<repo>/worktrees/<slug>` on branch `duet/<slug>`
   (from `origin/HEAD` if a remote exists, else `HEAD`); per-turn prompts and

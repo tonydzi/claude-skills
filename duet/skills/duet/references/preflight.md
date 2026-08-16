@@ -127,6 +127,7 @@ auto-approve should see at most one prompt, at the smoke test.
 | `codex login status` | which auth Codex uses — reads no secret |
 | `codex exec -s workspace-write …` | the implementer's turn, once per round |
 | `git worktree add` / `remove` | the isolated checkout duet works in |
+| `git fetch --prune` / `git branch -d` | pruning old merged `duet/*` branches before setup — references SKILL.md's **Set up** |
 | `gh pr view` / `gh pr comment` | PR mode only — the thread is the notebook |
 
 If the smoke test comes back denied, hand the user exactly this, say in one
@@ -140,6 +141,8 @@ line what each entry buys, and let them add it via `/permissions` or
     "Bash(env -u CODEX_API_KEY -u OPENAI_API_KEY codex exec:*)",
     "Bash(codex exec:*)",
     "Bash(git worktree:*)",
+    "Bash(git fetch:*)",
+    "Bash(git branch:*)",
     "Bash(gh pr view:*)",
     "Bash(gh pr comment:*)"
   ]
