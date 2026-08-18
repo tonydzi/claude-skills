@@ -1,7 +1,7 @@
 {
   "name": "duet",
   "description": "Autonomous Claude↔Codex loop: Fable and Codex draft independently, Sonnet+Codex merge until converged, Codex implements under tiered Sonnet/Opus review with Fable checkpoints, until both approve or the round budget runs out",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "author": {
     "name": "Michael Smith",
     "url": "https://github.com/morphenius"

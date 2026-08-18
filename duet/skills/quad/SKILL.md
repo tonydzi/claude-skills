@@ -140,26 +140,36 @@ A stage's dispatcher subagent can legitimately go quiet for a long stretch —
 a single Codex round doing careful verification has run past 50 minutes more
 than once — and separately, these subagents intermittently and harmlessly
 drop out of `ListAgents` between their own async dispatches, which looks
-identical to a stall from the outside. Don't wait blind:
+identical to a stall from the outside. Don't wait blind, and **don't wait
+for a long confirmed-stall window before nudging** — empirically (2026-08-18,
+run three times end to end), a nudge was needed and worked essentially every
+time something went quiet; treat nudging as routine maintenance every check
+cycle, not a last resort:
 
 - **While actively responding to the user**, a background cron/wakeup cannot
   fire (it only runs when the session is idle between turns) — so during any
   long stretch of conversation, periodically break in yourself and check
   rather than assuming a watchdog has it covered.
-- **Otherwise**, poll roughly every 20 minutes: `ListAgents`, plus real
+- **Otherwise**, poll roughly every 15-20 minutes: `ListAgents`, plus real
   liveness signs (`ps aux | grep -i codex`, file mtimes under the current
-  stage's runs dir) rather than trusting `ListAgents` status alone. Recent
-  file activity or a live `codex exec` process → say nothing, it's fine.
-  Nothing for ~45+ minutes and no live process → `SendMessage` the stage's
-  dispatcher directly asking for its real status; a genuinely dead process
-  can't respond to this, so a reply (even "still working") is real signal a
-  bare status flag isn't.
-- If a nudge gets no response and file activity stays flat: check the
-  stage's latest round for a visible error first. If none, this is worth
-  telling the user directly rather than waiting further — it may be a real
+  stage's runs dir) rather than trusting `ListAgents` status alone. A live
+  `codex exec` process, or a file newer than ~10 minutes → say nothing, it's
+  fine, skip this cycle. Otherwise → `SendMessage` the stage's dispatcher
+  directly, right now, asking for its real status — this is the routine
+  check-in, not an escalation. A genuinely dead process can't respond to
+  this, so a real reply (even "still working") is signal a bare status flag
+  isn't; a routine "still working" reply needs no further action and doesn't
+  need reporting.
+- Only escalate to the user if: a nudge gets no reply at all, or the same
+  stage needs nudging with zero progress across two consecutive cycles in a
+  row, or a reply reveals a real error. Verify ground truth before reporting
+  anything as stuck or done — check the actual PR state
+  (`gh pr view <n> --json state,mergedAt,mergeable,statusCheckRollup`)
+  rather than trusting a status label alone. If genuinely stuck: check the
+  stage's latest round for a visible error first; if none, it may be a real
   resource limit (e.g. a model access/credit problem, testable by spawning a
   trivial subagent on the model in question and seeing if it responds at
-  all) rather than an ordinary stall.
+  all) rather than an ordinary pause.
 
 ## Cleanup
 
