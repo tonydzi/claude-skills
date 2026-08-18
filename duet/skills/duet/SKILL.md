@@ -231,9 +231,10 @@ references/pr-review.md.
    absolute paths, protocol slice, "read the notebook, append your entry"),
    then run the round command in the exact shape settled at preflight
    (references/preflight.md) — only `-o` and the prompt differ, which is
-   what makes one approval cover the whole run. Resume the Codex session
-   where preflight found that supported; else fresh `codex exec` per turn
-   with a protocol slice. Verify Codex appended a well-formed entry (`grep
+   what makes one approval cover the whole run. Always a fresh `codex exec`
+   per turn with a protocol slice — `codex exec resume` is not usable for
+   this (references/preflight.md's **Codex session economy**). Verify Codex
+   appended a well-formed entry (`grep
    '^VERDICT:'` on the tail); if it answered in `-o` output but didn't
    append, append it yourself, marked "(appended by orchestrator)".
 3. Alternate until both sides say `VERDICT: AGREE` on the design. Respond

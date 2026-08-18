@@ -48,12 +48,16 @@ Steps 1–2 can run while the worktree is being set up; step 3 needs it.
      denial — a Codex that cannot write the worktree produces a run that looks
      alive and builds nothing. If the user declines, remove the worktree and
      stop.
-4. **Session-economy probe** (see **Codex session economy** below): with the
-   version/auth already known, check once whether the installed Codex CLI
-   supports resuming a session non-interactively — try `codex exec resume
-   --help`, and check `codex exec --help` for a `resume`/`--last` affordance.
-   Record the answer in `architect-state.md`; every later turn reads it
-   instead of re-probing.
+4. **No session-economy probe needed.** `codex exec resume` cannot carry
+   `-s`/`--add-dir`/`-c sandbox_workspace_write.network_access`/`-C` —
+   passing any of them errors with `unexpected argument found` (confirmed
+   2026-08-18). Without them its writable root silently becomes wherever the
+   *dispatcher's own shell* currently is, not the worktree, which reliably
+   produces `Read-only file system` / `index.lock` failures partway through a
+   run rather than a loud one up front. Every round — Round 1 through the
+   last — uses a **fresh** `codex exec` in the exact shape below; there is no
+   working persistent-session path in this environment. See **Codex session
+   economy** below.
 
 **Never wrap a Codex call in `timeout`** — it is not present on stock macOS, so
 the whole command dies with `env: timeout: No such file or directory` and reads
@@ -106,16 +110,19 @@ auto-approve sessions.
 
 ## Codex session economy
 
-- The probe at preflight step 4 decides this for the whole run.
-- **If resuming is supported**: run one persistent Codex session across
-  critique → implementation → fixes; per-turn prompts send only the new task
-  + state delta, not the full protocol + history.
-- **If not supported**: fall back to fresh `codex exec` per turn, but send a
-  protocol *slice* — Core, plus whichever of the blind-opening/merge-iteration
-  or PR-review slices apply this turn — not the whole `protocol.md` file (see
-  the "what to send when" note at the top of that file).
-- Either way the smoke test above still runs in the exact per-turn command
-  shape that will actually be used.
+`codex exec resume` looks like the efficient path — skip resending the
+protocol every round — but isn't usable here: it doesn't accept the sandbox
+flags the round command needs, so a resumed session's writable root ends up
+wherever the dispatcher's shell happens to be `cd`'d to rather than the
+worktree. That's a silent, intermittent failure mode (a round appears to run,
+then fails to write its evidence or can't commit), not a loud one — verified
+2026-08-18 across multiple independent duet runs that each discovered this
+the same way. **Always use fresh `codex exec` for every round.** Send a
+protocol *slice* — Core, plus whichever of the blind-opening/merge-iteration
+or PR-review slices apply this turn — not the whole `protocol.md` file (see
+the "what to send when" note at the top of that file). The smoke test above
+already runs in the exact per-turn shape that will actually be used, so
+there's nothing further to verify here.
 
 ## Permissions
 

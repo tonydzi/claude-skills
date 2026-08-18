@@ -83,6 +83,14 @@ below.)
   **say so in your entry** — name the command and what it needed — and let the
   architect widen it. Do not route around a sandbox denial, and do not silently
   drop the piece of work that hit it.
+- **You cannot `git commit` in a linked worktree.** Its `.git` metadata lives
+  in the main repo's `.git/worktrees/<slug>/`, outside anywhere the sandbox
+  grants write access, so `git commit` fails with `Unable to create
+  .../index.lock: Read-only file system` even though the working-tree edit
+  itself succeeded (confirmed 2026-08-18). This is expected, not a bug to
+  route around: leave the change staged or unstaged and say so plainly in
+  your entry's evidence packet — the dispatcher (running unsandboxed) commits
+  it on your behalf.
 - **Every `IMPLEMENTED` entry carries an evidence packet**: an annotated diff
   (or diff path), the exact commands you ran, their captured output, a
   per-finding/per-ID status, any deviations from the charter or work order,
