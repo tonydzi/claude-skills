@@ -137,9 +137,9 @@ don't re-document it here — see git history.
   calls for: Core every turn, blind-opening/merge only during Round 1 and
   merge iterations, PR-review only in PR mode.
 
-**Preflight**: run auth checks, the session-economy probe, and the
-permission-handshake smoke test before Round 1 — see references/preflight.md,
-which also has the exact round command shape **The loop** uses.
+**Preflight**: run auth checks and the permission-handshake smoke test
+before Round 1 — see references/preflight.md, which also has the exact
+round command shape **The loop** uses.
 
 ## Context economy — orchestrate rounds through fresh subagents (default)
 
@@ -154,7 +154,8 @@ nothing is lost by staying thin.
 - **State file**: at kickoff, create `<runs>/<slug>/architect-state.md` — mode,
   protocol essentials + paths, verification bar, settled design rulings
   (do-not-relitigate list), Fable-checkpoint and round accounting, the
-  session-economy probe result, open findings, review-methodology notes.
+  `env -u` auth prefix preflight settled, open findings, review-methodology
+  notes.
   Whoever completes a round updates it; a fresh context needs only this file
   plus the latest notebook/PR entries to act as the architect.
 - **Per-round agent**: run each design/review round as a *fresh* subagent
@@ -187,7 +188,8 @@ each.
 
 1. Both sides get both current drafts (A/B, then A′ᵢ₋₁/B′ᵢ₋₁).
 2. Fresh **Sonnet** produces merger A′ᵢ; **Codex** produces B′ᵢ blind to A′ᵢ
-   until both exist (Codex may resume its own session — its history is
+   until both exist (a fresh `codex exec` like every round, since
+   `codex exec resume` is not usable here; its own earlier drafts are
    fine, A′ᵢ early is not). Each merger takes the stronger option point by
    point (never splits differences), listing every disagreement — side
    taken, why, what was rejected. Unjustified total agreement in one hop is

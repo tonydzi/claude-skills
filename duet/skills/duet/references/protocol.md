@@ -119,7 +119,8 @@ flow is suspended for that round:
   Round 1 draft — there is no previous entry. Say what *you* think the
   design (or the review) should be.
 - This blindness rule extends to every merge iteration, not just Round 1: you
-  may see your own prior history (a resumed Codex session, for instance) but
+  may see your own prior drafts in the files the prompt names (every Codex
+  round is a fresh `codex exec`; a resumed session is not usable), but
   never the other side's merger for the *current* iteration until both exist.
 - Both drafts (or mergers) are posted together once both exist, verbatim
   under their own signatures, so the record is honest about what each side
