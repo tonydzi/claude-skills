@@ -1,15 +1,20 @@
 {
-  "name": "morphenius",
-  "description": "Michael Smith's opt-in Claude Code skills",
+  "name": "tonydzi",
+  "description": "Opt-in Claude Code skills from Tony Dzi (fork of morphenius/claude-skills): duet by Michael Smith, github-growth by Anton Dziatkovskii and Mycroft",
   "owner": {
-    "name": "Michael Smith",
-    "url": "https://github.com/morphenius"
+    "name": "Anton Dziatkovskii (Tony Dzi)",
+    "url": "https://github.com/tonydzi"
   },
   "plugins": [
     {
       "name": "duet",
       "source": "./duet",
-      "description": "Autonomous Claude↔Codex loop: Fable and Codex draft independently and merge, Codex implements under tiered review, until both approve"
+      "description": "Autonomous Claude↔Codex loop: Fable and Codex draft independently and merge, Codex implements under tiered review, until both approve (by Michael Smith, upstream morphenius/claude-skills)"
+    },
+    {
+      "name": "github-growth",
+      "source": "./github-growth",
+      "description": "Grow on GitHub by being useful: pick the door before code, gate outbound PRs, answer inbound in 24h, share verified fixes into live threads, plus a 33-lane catalog"
     }
   ]
 }

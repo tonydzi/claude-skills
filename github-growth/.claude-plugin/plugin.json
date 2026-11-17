@@ -1,0 +1,13 @@
+{
+  "name": "github-growth",
+  "description": "Grow on GitHub by being useful, not loud: pick the door before writing code, gate every outbound PR, answer people who came to you, share verified fixes into live threads, close the loop with reviewers. Six skills plus the lane catalog we ran for four months.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Anton Dziatkovskii (Tony Dzi)",
+    "url": "https://github.com/tonydzi"
+  },
+  "homepage": "https://github.com/tonydzi/claude-skills/tree/main/github-growth",
+  "repository": "https://github.com/tonydzi/claude-skills",
+  "license": "MIT",
+  "keywords": ["github", "open-source", "contributions", "pull-requests", "code-review", "maintainers", "gh-cli"]
+}

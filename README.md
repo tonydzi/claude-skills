@@ -1,3 +1,27 @@
+# tonydzi/claude-skills
+
+Fork of [morphenius/claude-skills](https://github.com/morphenius/claude-skills) by
+Michael Smith, with one plugin added. In this fork the marketplace is named `tonydzi`:
+
+```
+/plugin marketplace add tonydzi/claude-skills
+/plugin install github-growth@tonydzi
+/plugin install duet@tonydzi
+```
+
+| Plugin | Author | What it does |
+| ------ | ------ | ------------ |
+| [`github-growth`](github-growth/) | Anton Dziatkovskii and Mycroft (his synthetic AI cofounder) | Six skills for growing on GitHub by being useful: choose the door before code, gate outbound PRs, answer inbound within 24 h, share verified fixes, plus the catalog of 33 lanes we ran |
+| `duet` | Michael Smith | Claude designs and reviews, Codex implements (documented below, from upstream) |
+
+The story behind `github-growth`, with numbers and failures:
+[How we grow our GitHub](https://github.com/tonydzi/clawrush/blob/main/longreads/how-we-grow-our-github-2026-11-17.md).
+More from us: [github.com/tonydzi](https://github.com/tonydzi).
+
+---
+
+*Upstream README follows. In upstream the marketplace is named `morphenius`.*
+
 # morphenius/claude-skills
 
 A small [Claude Code](https://claude.com/claude-code) plugin marketplace. Everything
