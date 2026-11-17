@@ -33,7 +33,11 @@ Needs `gh` (logged in) and `jq`. To back out: `/plugin uninstall github-growth@t
 Order of a contribution: `issue-match` → plan comment in the thread → maintainer says yes
 → code → `outbound-gate` → PR → `reply-pr-reviewers` until merged → `share-fix`.
 
-## The recipe that merged (4 of 4)
+## The recipe we follow now
+
+What four merges in one repo in November had in common: work the maintainer had asked
+for, a clear "I'm taking this" before or with the PR, and pieces small enough to review
+alone. One maintainer is a small sample; the article says exactly how small.
 
 1. Enter through an issue the maintainer opened or confirmed.
 2. Before code, a short plan in the thread: what changes, which files, how it is tested.
