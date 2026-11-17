@@ -18,8 +18,9 @@ through someone else's open issue.
 
 ```bash
 SINCE=$(date -v-30d +%F 2>/dev/null || date -d '-30 days' +%F)
+ME=$(gh api user -q .login)
 gh search prs --author @me --merged --merged-at ">=$SINCE" \
-  --json repository -q '.[].repository.nameWithOwner' | sort | uniq -c | sort -rn
+  --json repository -q '.[].repository.nameWithOwner' | grep -v "^$ME/" | sort | uniq -c | sort -rn
 ```
 
 A maintainer who merged you this month is the warmest door you have. Read their open
@@ -50,9 +51,11 @@ Read it like this:
 A busy merge stream can be 100% staff. Check who got merged:
 
 ```bash
-gh pr list -R $R --state merged --limit 100 --json authorAssociation \
-  -q 'group_by(.authorAssociation)[] | "\(.[0].authorAssociation) \(length)"'
+gh api "repos/$R/pulls?state=closed&per_page=100" \
+  --jq 'map(select(.merged_at)) | group_by(.author_association)[] | "\(.[0].author_association) \(length)"'
 ```
+
+(`gh pr list --json` has no author-association field; the REST endpoint does.)
 
 `CONTRIBUTOR` / `FIRST_TIME_CONTRIBUTOR` / `NONE` merges are your evidence the door is
 open. Zero of them means closed, whatever the issue tracker looks like.

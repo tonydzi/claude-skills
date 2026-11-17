@@ -18,7 +18,7 @@ gh search prs --author $ME --state open --sort updated --limit 50 \
 while read R N; do
   last=$(gh pr view $N -R $R --json comments,reviews -q \
     '[(.comments[]|{t:.createdAt,a:.author.login}), (.reviews[]|{t:.submittedAt,a:.author.login})]
-     | map(select(.a|test("\\[bot\\]|bot$")|not)) | sort_by(.t) | last | .a // "none"')
+     | map(select(.a|test("\\[bot\\]|bot$|^github-actions$|^app/")|not)) | sort_by(.t) | last | .a // "none"')
   [ "$last" != "$ME" ] && [ "$last" != "none" ] && echo "BALL OURS  $R#$N  (last: $last)"
 done
 ```
