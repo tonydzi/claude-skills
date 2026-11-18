@@ -19,6 +19,22 @@ In any Claude Code session:
 
 Needs `gh` (logged in) and `jq`. To back out: `/plugin uninstall github-growth@tonydzi`.
 
+### Other agents
+
+Each skill is one plain `SKILL.md` that calls only `gh` and `jq`, so it is not tied to Claude Code.
+
+- **Codex CLI** reads skills from `~/.codex/skills/<name>/SKILL.md`:
+
+  ```
+  git clone https://github.com/tonydzi/claude-skills
+  mkdir -p ~/.codex/skills
+  cp -R claude-skills/github-growth/skills/* ~/.codex/skills/
+  ```
+
+- **Any other agent** (Cursor, Gemini CLI, Aider and so on): give it the `SKILL.md` you need as instructions or as a project rule.
+
+Our internal versions of these skills run in Claude Code and Codex; this public copy was install-tested only in Claude Code. If it breaks in another agent, open an issue.
+
 ## The six skills
 
 | Skill | When | One line |
