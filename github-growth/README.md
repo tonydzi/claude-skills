@@ -31,7 +31,15 @@ Each skill is one plain `SKILL.md` that calls only `gh` and `jq`, so it is not t
   cp -R claude-skills/github-growth/skills/* ~/.codex/skills/
   ```
 
-- **Any other agent** (Cursor, Gemini CLI, Aider and so on): give it the `SKILL.md` you need as instructions or as a project rule.
+- **Any agent the [skills](https://skills.sh) CLI supports** (Claude Code, Codex, Cursor, Gemini CLI and more):
+
+  ```
+  npx skills add tonydzi/claude-skills
+  ```
+
+  Add `--skill issue-match` (or any other name) to take one skill; `--list` shows them without installing.
+
+- **Any other agent** (Aider and so on): give it the `SKILL.md` you need as instructions or as a project rule.
 
 Our internal versions of these skills run in Claude Code and Codex; this public copy was install-tested only in Claude Code. If it breaks in another agent, open an issue.
 
