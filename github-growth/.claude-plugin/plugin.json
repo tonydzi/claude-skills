@@ -10,6 +10,7 @@
   "homepage": "https://github.com/tonydzi/claude-skills/tree/main/github-growth",
   "repository": "https://github.com/tonydzi/claude-skills",
   "supportUrl": "https://github.com/tonydzi/claude-skills/issues",
+  "privacyPolicyUrl": "https://github.com/tonydzi/claude-skills/tree/main/github-growth#data-and-network",
   "documentationUrl": "https://github.com/tonydzi/clawrush/blob/main/longreads/how-we-grow-our-github-2026-11-17.md",
   "license": "MIT",
   "keywords": ["github", "open-source", "contributions", "pull-requests", "code-review", "maintainers", "gh-cli"]
