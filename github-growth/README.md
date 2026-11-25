@@ -43,6 +43,15 @@ Each skill is one plain `SKILL.md` that calls only `gh` and `jq`, so it is not t
 
 Our internal versions of these skills run in Claude Code and Codex; this public copy was install-tested only in Claude Code. If it breaks in another agent, open an issue.
 
+### Data and network
+
+The skills talk to one service: GitHub, through your own logged-in `gh`. They read public
+repos, issues, PRs and the logins of the people in them. The ones that act (`share-fix`,
+`answer-github-issues`, `reply-pr-reviewers`, `contrib-watch`) post comments or replies
+under your account with `gh issue comment` / `gh pr comment`, so keep your agent's
+permission prompt on for those commands if you want to read each one first. Nothing is sent anywhere else and nothing is
+stored by us: there is no server behind this plugin.
+
 ## The six skills
 
 | Skill | When | One line |
