@@ -1,5 +1,6 @@
 {
   "name": "github-growth",
+  "displayName": "GitHub Growth",
   "description": "Grow on GitHub by being useful, not loud: pick the door before writing code, gate every outbound PR, answer people who came to you, share verified fixes into live threads, close the loop with reviewers. Six skills plus the lane catalog we ran for four months.",
   "version": "0.1.0",
   "author": {
@@ -8,6 +9,8 @@
   },
   "homepage": "https://github.com/tonydzi/claude-skills/tree/main/github-growth",
   "repository": "https://github.com/tonydzi/claude-skills",
+  "supportUrl": "https://github.com/tonydzi/claude-skills/issues",
+  "documentationUrl": "https://github.com/tonydzi/clawrush/blob/main/longreads/how-we-grow-our-github-2026-11-17.md",
   "license": "MIT",
   "keywords": ["github", "open-source", "contributions", "pull-requests", "code-review", "maintainers", "gh-cli"]
 }
